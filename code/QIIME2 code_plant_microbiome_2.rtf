@@ -1,0 +1,66 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2761
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red255\green255\blue255;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c100000\c100000\c100000;}
+\margl1440\margr1440\vieww27080\viewh14880\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs36 \cf2 \cb3 \expnd0\expndtw0\kerning0
+# Plant Microbiome\
+# Mairui Gao (mrgao@umd.edu)\
+\
+conda activate qiime2-2023.5\
+\
+qiime tools import\'a0 --type 'SampleData[PairedEndSequencesWithQuality]'\'a0\'a0 --input-path config.txt\'a0 --output-path \'a0mjsample.qza \'a0--input-format \cb1 PairedEndFastqManifestPhred33V2\cb3 \
+\
+qiime demux summarize --i-data mjsample.qza --o-visualization mjsample.qzv\
+\
+qiime tools export --input-path mjsample.qzv --output-path mjsample_statistic\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf2 \kerning1\expnd0\expndtw0 \CocoaLigature0 qiime dada2 denoise-paired --i-demultiplexed-seqs mjsample.qza p-trunc-len-f 260 --p-trunc-len-r 250 --p-trim-left-f 10 --p-trim-left-r 0 --p-n-threads 8 --o-table table.qza --o-representative-sequences rep-seqs.qza --o-denoising-stats stats-dada2.qza\
+\expnd0\expndtw0\kerning0
+\CocoaLigature1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 qiime metadata tabulate --m-input-file stats-dada2.qza\'a0\'a0 --o-visualization stats-dada2.qzv\
+\
+qiime tools export --input-path stats-dada2.qzv --output-path stats2\
+\
+qiime feature-table summarize \'a0\'a0--i-table table.qza\'a0\'a0 --o-visualization table.qzv\'a0\'a0 --m-sample-metadata-file sample.tsv\
+\
+qiime tools export --input-path table.qzv --output-path table_stat\
+\
+qiime tools export --input-path rep-seqs.qza --output-path rep-seqs \
+\
+qiime tools export --input-path table.qza --output-path table\
+biom convert -i table/feature-table.biom -o asv_table.txt\'a0 --table-type "OTU table" --to-tsv\
+\
+qiime tools import --type 'FeatureData[Taxonomy]' --input-format HeaderlessTSVTaxonomyFormat --input-path silva138_16s.tax --output-path ref-taxonomy.qza\
+\
+qiime tools import --type 'FeatureData[Sequence]' --input-path silva138_16s.fasta --output-path ref-seqs.qza\
+\
+qiime feature-classifier classify-consensus-blast --i-query rep-seqs.qza\'a0--i-reference-reads ref-seqs.qza --i-reference-taxonomy ref-taxonomy.qza --p-maxaccepts 1 --o-classification taxonomy_blast.qza\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf2 \kerning1\expnd0\expndtw0 \CocoaLigature0 qiime metadata tabulate --m-input-file taxonomy_blast.qza --o-visualization taxonomy_blast.qzv\
+\expnd0\expndtw0\kerning0
+\CocoaLigature1 \
+\kerning1\expnd0\expndtw0 \CocoaLigature0 qiime taxa barplot  --i-table table.qza  --i-taxonomy taxonomy_blast.qza  --m-metadata-file sample.txt --o-visualization taxa-bar-plots.qzv\
+\expnd0\expndtw0\kerning0
+\CocoaLigature1 \
+\kerning1\expnd0\expndtw0 \CocoaLigature0 qiime tools export --input-path  taxa-bar-plots.qzv --output-path  taxa-bar-plots\
+\expnd0\expndtw0\kerning0
+\CocoaLigature1 \'a0\
+\kerning1\expnd0\expndtw0 \CocoaLigature0 qiime taxa filter-table --i-table table.qza --i-taxonomy taxonomy_blast.qza --p-exclude mitochondria,chloroplast --o-filtered-table table-no-mitochondria-no-chloroplast.qza\
+\pard\pardeftab720\partightenfactor0
+\cf2 \expnd0\expndtw0\kerning0
+\CocoaLigature1 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf2 \kerning1\expnd0\expndtw0 \CocoaLigature0 qiime taxa filter-table   --i-table table-no-mitochondria-no-chloroplast.qza   --i-taxonomy taxonomy_blast.qza   --p-include p__ --o-filtered-table table-no-m-no-c-with-phyla.qza\expnd0\expndtw0\kerning0
+\CocoaLigature1 \
+\kerning1\expnd0\expndtw0 \CocoaLigature0 qiime taxa barplot  --i-table table-no-m-no-c-with-phyla.qza  --i-taxonomy taxonomy_blast.qza  --m-metadata-file sample.txt --o-visualization table-no-m-no-c-with-phyla.qzv\
+\expnd0\expndtw0\kerning0
+\CocoaLigature1 \
+\kerning1\expnd0\expndtw0 \CocoaLigature0 qiime tools export --input-path table-no-m-no-c-with-phyla.qzv --output-path taxa-bar-plots-phyla-no-mitochondria-no-chloroplast\expnd0\expndtw0\kerning0
+\CocoaLigature1 \'a0}
